@@ -95,15 +95,15 @@
 
 ### Calls Extra
 - http://localhost:8001/reports/options/audit (Entra nos Reports)
-- http://localhost:8001/report-data/operations/expenses/4,1,3,9/20200401/20200430 (Balanço Mensal)
-- http://localhost:8001/report-data/operations/operations/4,1,3,9/20200401/20200430 (Balanço Mensal)
-- http://localhost:8001/report-data/bill/overview/4,1,3,9/20200401/20200430 (Balanço Mensal)
-- http://localhost:8001/chart/account/report/4,1,3,9/20200401/20200430 (Balanço Mensal)
-- http://localhost:8001/report-data/category/operations/4,1,3,9/20200401/20200430 (Balanço Mensal)
-- http://localhost:8001/report-data/budget/general/4,1,3,9/20200401/20200430 (Balanço Mensal)
-- http://localhost:8001/report-data/balance/general/4,1,3,9/20200401/20200430 (Balanço Mensal)
-- http://localhost:8001/report-data/account/general/4,1,3,9/20200401/20200430 (Balanço Mensal)
-- http://localhost:8001/report-data/operations/income/4,1,3,9/20200401/20200430 (Balanço Mensal)
+- http://localhost:8001/report-data/operations/expenses/4,1,3,9/20200301/20200331 (Balanço Mensal)
+- http://localhost:8001/report-data/operations/operations/4,1,3,9/20200301/20200331 (Balanço Mensal)
+- http://localhost:8001/report-data/bill/overview/4,1,3,9/20200301/20200331 (Balanço Mensal)
+- http://localhost:8001/chart/account/report/4,1,3,9/20200301/20200331 (Balanço Mensal)
+- http://localhost:8001/report-data/category/operations/4,1,3,9/20200301/20200331 (Balanço Mensal)
+- http://localhost:8001/report-data/budget/general/4,1,3,9/20200301/20200331 (Balanço Mensal)
+- http://localhost:8001/report-data/balance/general/4,1,3,9/20200301/20200331 (Balanço Mensal)
+- http://localhost:8001/report-data/account/general/4,1,3,9/20200301/20200331 (Balanço Mensal)
+- http://localhost:8001/report-data/operations/income/4,1,3,9/20200301/20200331 (Balanço Mensal)
 - http://localhost:8001/report-data/account/general/4,1,3,9/20200101/20201231 (Balanço Anual)
 - http://localhost:8001/report-data/operations/income/4,1,3,9/20200101/20201231 (Balanço Anual)
 - http://localhost:8001/report-data/operations/expenses/4,1,3,9/20200101/20201231 (Balanço Anual)
@@ -114,10 +114,6 @@
 - http://localhost:8001/report-data/budget/period/4,1,3,9/20200101/20201231 (Balanço Anual)
 - http://localhost:8001/report-data/category/expenses/4,1,3,9/20200101/20201231 (Balanço Anual)
 - http://localhost:8001/report-data/category/income/4,1,3,9/20200101/20201231 (Balanço Anual)
-
-
-
-
 
 
 
