@@ -6,25 +6,72 @@ from random import randint
 
 class ApiClient:
 
-    def __init__(self, email, pw, base_url, client_id, client_secret, redirect_uri, authorize_url, access_token_url):
+    def __init__(self, admin_email, admin_pw, base_url, client_id, client_secret, redirect_uri, authorize_url,
+                 access_token_url, user_email, user_pw):
+
         self.browser_cookies = {}
-        self.email = email
-        self.pw = pw
+        self.admin_email = admin_email
+        self.admin_pw = admin_pw
         self.br = mechanize.Browser()
         self.br.set_handle_robots(False)
         self.br.addheaders = [('User-agent', 'Firefox')]
         self.base_url = base_url
         self.api_headers = {}
 
-        self.client_id = client_id
-        self.client_secret = client_secret
+        self.client_id = ""
+        self.client_secret = ""
         self.redirect_uri = redirect_uri
         self.authorize_url = authorize_url
         self.access_token_url = access_token_url
         self.api_cookies = {}
         self.api_headers = {}
 
+        self.user_id = 0
+        self.user_email = user_email
+        self.user_pw = user_pw
+
+        self.create_user()
         self.get_access_token()
+
+    def create_user(self):
+        self.br.open(self.base_url)
+
+        for link in self.br.links():
+            if link.text == "Register a new account":
+                self.br.follow_link(link)
+                break
+
+        self.br.select_form(nr=0)
+        self.br.form["email"] = self.user_email
+        self.br.form["password"] = self.user_pw
+        self.br.form["password_confirmation"] = self.user_pw
+        self.br.submit()
+        for c in self.br._ua_handlers['_cookies'].cookiejar:
+            self.browser_cookies[c.name] = c.value
+
+        resp = requests.get(self.base_url+"/v1/jscript/variables?ext=.js&v=5.2.2", cookies=self.browser_cookies)
+        token = ""
+        for l in resp.content.decode("utf-8").split("\n"):
+            if l.split("=")[0] == "var token ":
+                token = l.split("=")[1].split("'")[1]
+        print(token)
+        data = {
+            "name" : "api_usage",
+            "redirect" : self.redirect_uri
+        }
+        headers = {"accept": "application/json", "Content-Type": "application/json"}
+
+        resp = requests.post(
+            url=self.base_url + "/oauth/clients?_token="+token,
+            data=json.dumps(data),
+            headers=headers,
+            cookies=self.browser_cookies
+        ).json()
+        print(resp)
+        self.client_id = resp["id"]
+        self.client_secret = resp["secret"]
+        self.user_id = resp["user_id"]
+
 
     def get_access_token(self):
         br = mechanize.Browser()
@@ -32,10 +79,11 @@ class ApiClient:
         br.addheaders = [('User-agent', 'Firefox')]
         br.open('{}?response_type=code&client_id={}&redirect_uri={}'.format(self.authorize_url,
                                                                             self.client_id, self.redirect_uri))
-
         br.select_form(nr=0)
-        br.form["email"] = self.email
-        br.form["password"] = self.pw
+        br.form["email"] = self.user_email
+        br.form["password"] = self.user_pw
+        br.submit()
+        br.select_form(nr=0)
         br.submit()
 
         code = str(br.geturl()).split("?")[1].split("=")[1]
@@ -56,18 +104,15 @@ class ApiClient:
                             "Authorization": "Bearer "+token,
                             "Content-Type": "application/json"}
 
+
     def login(self):
         self.br.open(self.base_url)
         self.br.select_form(nr=0)
-        self.br.form["email"] = self.email
-        self.br.form["password"] = self.pw
+        self.br.form["email"] = self.user_email
+        self.br.form["password"] = self.user_pw
         self.br.submit()
         for c in self.br._ua_handlers['_cookies'].cookiejar:
             self.browser_cookies[c.name] = c.value
-
-    def get_budgets(self):
-        return requests.get(self.base_url + "/api/v1/available_budgets", cookies=self.api_cookies,
-                            headers=self.api_headers).json()
 
     def load_dashboard_resources(self):
         requests.get(self.base_url + "/chart/account/frontpage", cookies=self.browser_cookies).json()
@@ -95,7 +140,7 @@ class ApiClient:
                 break
 
         self.br.select_form(nr=1)
-        self.br.form["name"] = "Conta Corrente: "+self.email
+        self.br.form["name"] = "Conta Corrente: "+self.user_email
         self.br.form["opening_balance"] = str(randint(500, 1000))
         self.br.form["opening_balance_date"] = "2020-03-01"
         self.br.submit()
@@ -113,7 +158,7 @@ class ApiClient:
                 break
 
         self.br.select_form(nr=1)
-        self.br.form["name"] = "Supermercado: "+self.email
+        self.br.form["name"] = "Supermercado: "+self.user_email
         self.br.submit()
 
     def enter_revenue(self):
@@ -129,7 +174,7 @@ class ApiClient:
                 break
 
         self.br.select_form(nr=1)
-        self.br.form["name"] = "Empregador: "+self.email
+        self.br.form["name"] = "Empregador: "+self.user_email
         self.br.submit()
 
     def enter_liabilities(self):
@@ -145,7 +190,7 @@ class ApiClient:
                 break
 
         self.br.select_form(nr=1)
-        self.br.form["name"] = "Empréstimo casa: "+self.email
+        self.br.form["name"] = "Empréstimo casa: "+self.user_email
         self.br.form["opening_balance"] = str(randint(50000, 100000))
         self.br.form["opening_balance_date"] = "2010-03-01"
         self.br.form["interest"] = "6"
@@ -170,7 +215,7 @@ class ApiClient:
                         self.br.follow_link(link)
 
             self.br.select_form(nr=1)
-            self.br.form["name"] = c+self.email
+            self.br.form["name"] = c+self.user_email
             self.br.submit()
 
     def enter_transactions_expenses(self):
@@ -192,33 +237,33 @@ class ApiClient:
         requests.get(url=self.base_url+"/api/v1/preferences", headers=self.api_headers).json()
 
     def create_transactions_expenses(self):
-        user_id = 0
         categories = ["Roupa: ", "Comida: ", "Carro: ", "Mobilia: ", "Eletrodomésticos: "]
-        users = requests.get(url=self.base_url+"/api/v1/users", headers=self.api_headers).json()
-        for u in users["data"]:
-            if u["attributes"]["email"] == self.email:
-                user_id = u["id"]
-                break
 
         for i in range(0, 10):
             id = randint(0, 4)
+            n = randint(1, 31)
+            if n >= 10:
+                date = "2020-03-"+str(n)
+            else:
+                date ="2020-03-0"+str(n)
+
             transaction = { "type": "withdrawal",
-                            "date": "2020-03-0"+str(randint(1, 31)),
+                            "date": date,
                             "amount": str(randint(5, 30)),
                             "description": "Expenses",
-                            "source_name": "Conta Corrente: "+self.email,
-                            "destination_name": "Supermercado: "+self.email,
-                            "category_name": categories[id]+self.email
+                            "source_name": "Conta Corrente: "+self.user_email,
+                            "destination_name": "Supermercado: "+self.user_email,
+                            "category_name": categories[id]+self.user_email
                             }
             data = {
-                "user": user_id,
+                "user": self.user_id,
                 "transactions": [transaction]
             }
-            requests.post(
+            print(requests.post(
                 url=self.base_url+"/api/v1/transactions",
                 data=json.dumps(data),
                 headers=self.api_headers
-            ).json()
+            ).json())
 
     def enter_transactions_revenue(self):
         for link in self.br.links():
@@ -240,23 +285,17 @@ class ApiClient:
                      headers=self.api_headers).json()
 
     def create_transactions_revenue(self):
-        user_id = 0
 
-        users = requests.get(url=self.base_url+"/api/v1/users", headers=self.api_headers).json()
-        for u in users["data"]:
-            if u["attributes"]["email"] == self.email:
-                user_id = u["id"]
-                break
-
-        transaction = { "type": "deposit",
+        transaction = { "user": self.user_id,
+                        "type": "deposit",
                         "date": "2020-03-01",
                         "amount": "1000",
                         "description": "Salary",
-                        "source_name": "Empregador: "+self.email,
-                        "destination_name": "Conta Corrente: "+self.email,
+                        "source_name": "Empregador: "+self.user_email,
+                        "destination_name": "Conta Corrente: "+self.user_email,
                         }
         data = {
-            "user": user_id,
+            "user": self.user_id,
             "transactions": [transaction]
         }
 

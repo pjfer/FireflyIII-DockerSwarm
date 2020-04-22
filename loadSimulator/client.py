@@ -3,18 +3,19 @@ import mechanize
 from ApiCalls import ApiClient
 
 BASE_URL = "http://localhost:8001"
-REDIRECT_URI = 'http://0.0.0.0:8001/new-user'
+REDIRECT_URI = 'https://google.com'
 AUTHORIZE_URL = "http://0.0.0.0:8001/oauth/authorize"
 ACCESS_TOKEN_URL = "http://0.0.0.0:8001/oauth/token"
 
-client_id = 3
-client_secret = "6Eb11vg04jHsCcYeOCCtREF6LX7TRRkYgxtA7vlG"
+client_id = 18
+client_secret = "mHWqU6PkjY0XiuARD017f6q0py9FJkVq4u2GGZOo"
 
 
 def lifecycle(email, pw, base_url, client_id, client_secret, redirect_uri, authorize_url, access_token_url):
-    cli = ApiClient(email, pw, base_url, client_id, client_secret,  redirect_uri, authorize_url, access_token_url)
+    cli = ApiClient(email, pw, base_url, client_id, client_secret,  redirect_uri, authorize_url,
+                    access_token_url, "rafael@ua.pt", "c_P2+1D1.6ie3Uz%1Y1")
 
-    cli.login()  # Realiza o login
+    #cli.login()
     cli.load_dashboard_resources()  # Obtém os diferentes recursos presentes na dashboard (simular carga)
     cli.enter_assets()
     cli.create_asset_account()
@@ -45,5 +46,5 @@ def lifecycle(email, pw, base_url, client_id, client_secret, redirect_uri, autho
 
 
 
-lifecycle("trashuserzths@protonmail.com", "qwerty1234", BASE_URL, client_id, client_secret,
+lifecycle("user1@mail.com", "?URz/cJqyL3b)=DQ", BASE_URL, client_id, client_secret,
           REDIRECT_URI, AUTHORIZE_URL, ACCESS_TOKEN_URL)
