@@ -1,0 +1,27 @@
+docker network create nginx-proxy -> create network
+
+docker-compose up -d -> containers up
+
+docker ps -> List all the containers.
+
+docker stop $(docker ps -q) -> all containers down
+
+docker-compose logs -f -> read logs
+
+docker swarm init --advertise-addr <MANAGER-IP> -> initialize docker swarm and setup <MANAGER-IP> machine as the host
+
+docker stack deploy -c docker-compose.yml <APP_NAME> -> Deploy the services into the docker swarm.
+
+node1_id=$(docker node list | grep <LEADER HOSTNAME> | awk '{print $1}') -> Retrieve the node id from the created docker nodes.
+
+docker node update --label-add type=primary ${node1_id?} -> Update the node with the primary type.
+
+node2_id=$(docker node list | grep <WORKER1 HOSTNAME> | awk '{print $1}') -> Retrieve the node id from the created docker nodes.
+
+docker node update --label-add type=replica ${node2_id?} -> Update the node with the replica type.
+
+docker stack rm <APP_NAME> ->  To stop and delete the services created on docker swarm.
+
+docker service ls -> List all the services running on the stack.
+
+docker service logs <SERVICE_ID> -> Show the generated logs from a specific service.
