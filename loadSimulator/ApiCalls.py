@@ -1,4 +1,5 @@
 import json
+import time
 
 import mechanize
 import requests
@@ -300,6 +301,8 @@ class ApiClient:
             self.br.select_form(nr=1)
             self.br.form["name"] = c + self.email
             self.br.submit()
+            time.sleep(randint(1, 5))
+            print("Category created")
 
     '''
         Clicks in the Expenses link.
@@ -362,6 +365,8 @@ class ApiClient:
                 data=json.dumps(data),
                 headers=self.api_headers
             ).json()
+            time.sleep(randint(1, 5))
+            print("Expense transaction created")
     '''
         Clicks in the Revenue / income link.
     '''
