@@ -1,14 +1,16 @@
-docker network create nginx-proxy -> create network
+docker network create nginx-proxy -> Create a network.
 
-docker-compose up -d -> containers up
+docker-compose up -d -> Creates or updates all the containers, defined on the .yml file.
 
 docker ps -> List all the containers.
 
-docker stop $(docker ps -q) -> all containers down
+docker stop $(docker ps -q) -> Stop all containers which are running.
 
-docker-compose logs -f -> read logs
+docker rm $(docker ps -q) -> Remove all containers which are running.
 
-docker swarm init --advertise-addr <MANAGER-IP> -> initialize docker swarm and setup <MANAGER-IP> machine as the host
+docker-compose logs -f -> Read all the logs created by the containers.
+
+docker swarm init --advertise-addr <MANAGER-IP> -> Initialize docker swarm and setup <MANAGER-IP> machine as the host
 
 docker stack deploy -c docker-compose.yml <APP_NAME> -> Deploy the services into the docker swarm.
 
@@ -24,4 +26,6 @@ docker stack rm <APP_NAME> ->  To stop and delete the services created on docker
 
 docker service ls -> List all the services running on the stack.
 
-docker service logs <SERVICE_ID> -> Show the generated logs from a specific service.
+docker service logs <SERVICE_ID or SERVICE_NAME> -> Show the generated logs from a specific service.
+
+echo "<SECRET_CONTENT>" | docker secret create <NAME_SECRET> - -> Create a secrete for the docker swarm.
