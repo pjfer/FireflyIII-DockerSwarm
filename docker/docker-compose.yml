@@ -4,18 +4,16 @@ services:
   nginx-proxy:
     image: jwilder/nginx-proxy:alpine
     ports:
-      - "30012:80"
+      - "80:80"
   #    - "443:443"
-    depends_on:
-      - fireflyiii
   #  labels:
   #    - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=true"
     volumes:
-  #    - ./current/public:/usr/share/nginx/html
-  #    - ./certs:/etc/nginx/certs:ro
-  #    - ./vhost:/etc/nginx/vhost.d
+      - ./current/public:/usr/share/nginx/html
+      - ./certs:/etc/nginx/certs:ro
+      - ./vhost:/etc/nginx/vhost.d
       - /var/run/docker.sock:/tmp/docker.sock:ro
-  #    - ./pass:/etc/nginx/htpasswd:ro
+      - ./pass:/etc/nginx/htpasswd:ro
 
   #letsencrypt:
   #  image: jrcs/letsencrypt-nginx-proxy-companion
@@ -32,7 +30,7 @@ services:
     image: jc5x/firefly-iii:latest
     env_file: .env
     ports:
-      - "30012"
+      - "80"
     deploy:
       replicas: 4
     depends_on:
@@ -41,47 +39,30 @@ services:
       - redis_master
       - redis_slave
       - redis_sentinel
+      - nginx-proxy
     volumes:
       - firefly_iii_export:/var/www/firefly-iii/storage/export
       - firefly_iii_upload:/var/www/firefly-iii/storage/upload
   
   fireflyiiidb:
     image: postgres:10-alpine
+    env_file: .db_env
     ports:
       - "5432"
-    environment:
-      - POSTGRES_USER=firefly3_postgres_user
-      - POSTGRES_PASSWORD=firefly3_postgres_pw
-      - POSTGRES_DATABASE=firefly3_postgres_db
-      - POSTGRES_REPLICATION_MODE=master
-      - POSTGRES_HOST=fireflyiiidb
     volumes:
       - firefly_iii_db:/var/lib/postgresql/data
-    secrets:
-      - firefly3_postgres_user
-      - firefly3_postgres_pw
-      - firefly3_postgres_db
 
   fireflyiiidb_replica:
     image: postgres:10-alpine
+    env_file: .db_replica_env
     ports:
       - "5432"
     deploy:
       replicas: 4
     depends_on:
       - fireflyiiidb
-    environment:
-      - POSTGRES_USER=firefly3_postgres_user
-      - POSTGRES_PASSWORD=firefly3_postgres_pw
-      - POSTGRES_DATABASE=firefly3_postgres_db
-      - POSTGRES_REPLICATION_MODE=slave
-      - POSTGRES_MASTER_HOST=fireflyiiidb
     volumes:
       - firefly_iii_db_replica:/var/lib/postgresql/data
-    secrets:
-      - firefly3_postgres_user
-      - firefly3_postgres_pw
-      - firefly3_postgres_db
 
   redis_master:
     image: redis:latest
@@ -147,11 +128,3 @@ volumes:
   redis_master_data:
   redis_slave_data:
   redis_sentinel_data:
-
-secrets:
-  firefly3_postgres_user:
-    external: true
-  firefly3_postgres_pw:
-    external: true
-  firefly3_postgres_db:
-    external: true

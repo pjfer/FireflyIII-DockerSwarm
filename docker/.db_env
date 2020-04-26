@@ -1,0 +1,4 @@
+POSTGRES_USER=firefly
+POSTGRES_PASSWORD=secret_firefly_password
+POSTGRES_REPLICATION_MODE=master
+POSTGRES_HOST=fireflyiiidb

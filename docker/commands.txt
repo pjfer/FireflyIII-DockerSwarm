@@ -29,3 +29,25 @@ docker service ls -> List all the services running on the stack.
 docker service logs <SERVICE_ID or SERVICE_NAME> -> Show the generated logs from a specific service.
 
 echo "<SECRET_CONTENT>" | docker secret create <NAME_SECRET> - -> Create a secrete for the docker swarm.
+
+docker system prune -a --volumes --force -> Clear everything. Be careful when using this.
+
+docker volume ls -> List all the created volumes.
+
+docker volume prune -> Remove all the volumes that are not being utilized.
+
+docker volume rm <VOLUME_NAME> -> Remove a specific volume.
+
+
+
+export DOCKER_HOST="tcp://10.2.0.1:2375" -> Change the host for the current session. Meaning, if a new console is open the docker host will be the localhost.
+
+sudo mkdir /mnt/nfs -> Make a mounting point for nfs volumes.
+
+sudo mount srv2-deti.ua.pt:/mnt/nfs /mnt/nfs -> Mount the nfs volumes from the DETI machine into the local.
+
+Volumes:
+docker volume create  --driver local --name PROJ_VOLNAME --opt type=nfs --opt o=addr=srv2-deti.ua.pt,rw --opt device=:/mnt/nfs/PROJ_VOLNAME
+docker run --mount src=PROJ_VOLNAME,destination=/opt -ti --name PROJ_bash bash
+ 
+Direct bind mount: docker run -v /nfs/PROJ_VOLNAME:/opt -ti --name PROJ_bash bash
