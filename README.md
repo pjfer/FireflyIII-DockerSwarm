@@ -16,6 +16,14 @@ It is necessary to install [Docker](https://docs.docker.com/get-docker/) to run 
 
 ## Deployment
 
+For the postgreSQL database, you need to create the database, user and password to be used. We use docker secrets to do it, so to create the secrets, you must run, on the console, the following commands:
+
+```
+echo "firefly" | docker secret create firefly3-postgres-db -
+echo "firefly" | docker secret create firefly3-postgres-user -
+echo "secret_firefly_password" | docker secret create firefly3-postgres-passwd -
+```
+
 To start a swarm in docker swarm, run the following command on the console:
 
 `docker swarm init --advertise-addr <MANAGER-IP>`
