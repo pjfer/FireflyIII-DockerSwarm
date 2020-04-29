@@ -5,9 +5,11 @@ services:
     image: jwilder/nginx-proxy:alpine
     ports:
       - "80:80"
-  #    - "443:443"
-  #  labels:
-  #    - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=true"
+      - "443:443"
+    deploy:
+      replicas: 2
+    labels:
+      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=true"
     volumes:
       - ./current/public:/usr/share/nginx/html
       - ./certs:/etc/nginx/certs:ro
@@ -15,16 +17,16 @@ services:
       - /var/run/docker.sock:/tmp/docker.sock:ro
       - ./pass:/etc/nginx/htpasswd:ro
 
-  #letsencrypt:
-  #  image: jrcs/letsencrypt-nginx-proxy-companion
-  #  environment:
-  #    NGINX_PROXY_CONTAINER: nginx-proxy
-  #    NGINX_DOCKER_GEN_CONTAINER: nginx-proxy
-  #  volumes:
-  #    - ./certs:/etc/nginx/certs:rw
-  #    - /var/run/docker.sock:/var/run/docker.sock:ro
-  #    - ./vhost:/etc/nginx/vhost.d
-  #    - ./current/public:/usr/share/nginx/html
+  letsencrypt:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    environment:
+      NGINX_PROXY_CONTAINER: nginx-proxy
+      NGINX_DOCKER_GEN_CONTAINER: nginx-proxy
+    volumes:
+      - ./certs:/etc/nginx/certs:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./vhost:/etc/nginx/vhost.d
+      - ./current/public:/usr/share/nginx/html
 
   fireflyiii:
     image: jc5x/firefly-iii:latest
@@ -35,7 +37,10 @@ services:
       replicas: 4
     depends_on:
       - fireflyiiidb
-      - fireflyiiidb_replica
+      - fireflyiiidb_replica1
+      - fireflyiiidb_replica2
+      - fireflyiiidb_replica3
+      - fireflyiiidb_replica4
       - redis_master
       - redis_slave
       - redis_sentinel
@@ -46,23 +51,101 @@ services:
   
   fireflyiiidb:
     image: postgres:10-alpine
-    env_file: .db_env
     ports:
       - "5432"
+    environment:
+      - POSTGRES_HOST=fireflyiiidb
+      - POSTGRES_REPLICATION_MODE=master
+      - POSTGRES_DB_FILE=/run/secrets/firefly3-postgres-db
+      - POSTGRES_USER_FILE=/run/secrets/firefly3-postgres-user
+      - POSTGRES_PASSWORD_FILE=/run/secrets/firefly3-postgres-passwd
+      - POSTGRES_HOST_AUTH_METHOD="host all all 0.0.0.0/0 md5"
     volumes:
       - firefly_iii_db:/var/lib/postgresql/data
+    secrets:
+      - firefly3-postgres-db
+      - firefly3-postgres-user
+      - firefly3-postgres-passwd
 
-  fireflyiiidb_replica:
+  fireflyiiidb_replica1:
     image: postgres:10-alpine
-    env_file: .db_replica_env
     ports:
       - "5432"
-    deploy:
-      replicas: 4
+    environment:
+      - POSTGRES_MASTER_HOST=fireflyiiidb
+      - POSTGRES_REPLICATION_MODE=slave
+      - POSTGRES_DB_FILE=/run/secrets/firefly3-postgres-db
+      - POSTGRES_USER_FILE=/run/secrets/firefly3-postgres-user
+      - POSTGRES_PASSWORD_FILE=/run/secrets/firefly3-postgres-passwd
+      - POSTGRES_HOST_AUTH_METHOD="host all all 0.0.0.0/0 md5"
     depends_on:
       - fireflyiiidb
     volumes:
-      - firefly_iii_db_replica:/var/lib/postgresql/data
+      - firefly_iii_db_replica1:/var/lib/postgresql/data
+    secrets:
+      - firefly3-postgres-db
+      - firefly3-postgres-user
+      - firefly3-postgres-passwd
+
+  fireflyiiidb_replica2:
+    image: postgres:10-alpine
+    ports:
+      - "5432"
+    environment:
+      - POSTGRES_MASTER_HOST=fireflyiiidb
+      - POSTGRES_REPLICATION_MODE=slave
+      - POSTGRES_DB_FILE=/run/secrets/firefly3-postgres-db
+      - POSTGRES_USER_FILE=/run/secrets/firefly3-postgres-user
+      - POSTGRES_PASSWORD_FILE=/run/secrets/firefly3-postgres-passwd
+      - POSTGRES_HOST_AUTH_METHOD="host all all 0.0.0.0/0 md5"
+    depends_on:
+      - fireflyiiidb
+    volumes:
+      - firefly_iii_db_replica2:/var/lib/postgresql/data
+    secrets:
+      - firefly3-postgres-db
+      - firefly3-postgres-user
+      - firefly3-postgres-passwd
+
+  fireflyiiidb_replica3:
+    image: postgres:10-alpine
+    ports:
+      - "5432"
+    environment:
+      - POSTGRES_MASTER_HOST=fireflyiiidb
+      - POSTGRES_REPLICATION_MODE=slave
+      - POSTGRES_DB_FILE=/run/secrets/firefly3-postgres-db
+      - POSTGRES_USER_FILE=/run/secrets/firefly3-postgres-user
+      - POSTGRES_PASSWORD_FILE=/run/secrets/firefly3-postgres-passwd
+      - POSTGRES_HOST_AUTH_METHOD="host all all 0.0.0.0/0 md5"
+    depends_on:
+      - fireflyiiidb
+    volumes:
+      - firefly_iii_db_replica3:/var/lib/postgresql/data
+    secrets:
+      - firefly3-postgres-db
+      - firefly3-postgres-user
+      - firefly3-postgres-passwd
+
+  fireflyiiidb_replica4:
+    image: postgres:10-alpine
+    ports:
+      - "5432"
+    environment:
+      - POSTGRES_MASTER_HOST=fireflyiiidb
+      - POSTGRES_REPLICATION_MODE=slave
+      - POSTGRES_DB_FILE=/run/secrets/firefly3-postgres-db
+      - POSTGRES_USER_FILE=/run/secrets/firefly3-postgres-user
+      - POSTGRES_PASSWORD_FILE=/run/secrets/firefly3-postgres-passwd
+      - POSTGRES_HOST_AUTH_METHOD="host all all 0.0.0.0/0 md5"
+    depends_on:
+      - fireflyiiidb
+    volumes:
+      - firefly_iii_db_replica4:/var/lib/postgresql/data
+    secrets:
+      - firefly3-postgres-db
+      - firefly3-postgres-user
+      - firefly3-postgres-passwd
 
   redis_master:
     image: redis:latest
@@ -72,33 +155,58 @@ services:
     volumes:
       - redis_master_data:/data
 
-  redis_slave:
+  redis_slave1:
     image: redis:latest
     ports:
       - "6379"
-    deploy:
-      replicas: 2
     command: ["redis-server", "--slaveof", "redis_master", "6379"]
     depends_on:
       - redis_master
     volumes:
-      - redis_slave_data:/data
+      - redis_slave_data1:/data
 
-  redis_sentinel:
+  redis_slave2:
+    image: redis:latest
+    ports:
+      - "6379"
+    command: ["redis-server", "--slaveof", "redis_master", "6379"]
+    depends_on:
+      - redis_master
+    volumes:
+      - redis_slave_data2:/data
+
+  redis_sentinel1:
     image: bitnami/redis-sentinel:latest
     ports:
       - "26379"
-    deploy:
-      replicas: 2
     depends_on:
       - redis_master
-      - redis_slave
     environment:
       - REDIS_MASTER_HOST=redis_master
       - SENTINEL_DOWN_AFTER=5000
       - SENTINEL_FAILOVER=5000
-    volumes:
-      - redis_sentinel_data:/data
+
+  redis_sentinel2:
+    image: bitnami/redis-sentinel:latest
+    ports:
+      - "26379"
+    depends_on:
+      - redis_master
+    environment:
+      - REDIS_MASTER_HOST=redis_master
+      - SENTINEL_DOWN_AFTER=5000
+      - SENTINEL_FAILOVER=5000
+
+  redis_sentinel3:
+    image: bitnami/redis-sentinel:latest
+    ports:
+      - "26379"
+    depends_on:
+      - redis_master
+    environment:
+      - REDIS_MASTER_HOST=redis_master
+      - SENTINEL_DOWN_AFTER=5000
+      - SENTINEL_FAILOVER=5000
 
 volumes:
   firefly_iii_export:
@@ -119,12 +227,38 @@ volumes:
       type: "nfs"
       o: "addr=srv2-deti.ua.pt,rw"
       device: ":/mnt/nfs/firefly3/firefly_iii_db"
-  firefly_iii_db_replica:
+  firefly_iii_db_replica1:
     driver: local
     driver_opts:
       type: "nfs"
       o: "addr=srv2-deti.ua.pt,rw"
-      device: ":/mnt/nfs/firefly3/firefly_iii_db_replica"
+      device: ":/mnt/nfs/firefly3/firefly_iii_db_replica1"
+  firefly_iii_db_replica2:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=srv2-deti.ua.pt,rw"
+      device: ":/mnt/nfs/firefly3/firefly_iii_db_replica2"
+  firefly_iii_db_replica3:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=srv2-deti.ua.pt,rw"
+      device: ":/mnt/nfs/firefly3/firefly_iii_db_replica3"
+  firefly_iii_db_replica4:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=srv2-deti.ua.pt,rw"
+      device: ":/mnt/nfs/firefly3/firefly_iii_db_replica4"
   redis_master_data:
-  redis_slave_data:
-  redis_sentinel_data:
+  redis_slave_data1:
+  redis_slave_data2:
+
+secrets:
+  firefly3-postgres-db:
+    external: true
+  firefly3-postgres-user:
+    external: true
+  firefly3-postgres-passwd:
+    external: true
