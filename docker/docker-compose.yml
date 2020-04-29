@@ -42,8 +42,11 @@ services:
       - fireflyiiidb_replica3
       - fireflyiiidb_replica4
       - redis_master
-      - redis_slave
-      - redis_sentinel
+      - redis_slave1
+      - redis_slave2
+      - redis_sentinel1
+      - redis_sentinel2
+      - redis_sentinel3
       - nginx-proxy
     volumes:
       - firefly_iii_export:/var/www/firefly-iii/storage/export
