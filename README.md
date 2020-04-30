@@ -16,12 +16,20 @@ It is necessary to install [Docker](https://docs.docker.com/get-docker/) to run 
 
 ## Deployment
 
-For the postgreSQL database, you need to create the database, user and password to be used. We use docker secrets to do it, so to create the secrets, you must run, on the console, the following commands:
+For the postgreSQL database, you need to create the database, user and password to be used. We use docker secrets to do it, so to create the secrets, you **must** run, on the console, the following commands:
 
 ```
 echo "firefly" | docker secret create firefly3-postgres-db -
 echo "firefly" | docker secret create firefly3-postgres-user -
 echo "secret_firefly_password" | docker secret create firefly3-postgres-passwd -
+```
+
+You'll also need to create the configs. Firstly, enter the docker folder and change the ip in the **proxy_set_header   X-Forwarded-Host** inside the **nginx.conf** file. Afterwards, still inside the docker folder, run:
+
+```
+docker config create firefly3-postgresql postgresql.conf
+docker config create firefly3-pg_hba pg_hba.conf
+docker config create firefly3-nginx nginx.conf
 ```
 
 To start a swarm in docker swarm, run the following command on the console:
@@ -41,11 +49,6 @@ Then, if you want to make the node the leader of the swarm, run:
 Otherwise, run:
 
 `docker node update --label-add type=replica ${node1_id?}`
-
-Upon adding the wanted nodes to the swarm, to deploy our system into the docker swarm, firstly you **must** go to the docker folder and:
-
-* Open the file .env, and change the **VIRTUAL_HOST** value to **your** ip or domain.
-* In case you want to run in a different port, open the file .env, remove the # and change the **VIRTUAL_PORT** value to the desired port, and open the file docker-compose.yml and change the nginx-proxy and fireflyiii ports.
 
 Then, inside the docker folder, run:
 
