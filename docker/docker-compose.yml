@@ -2,12 +2,14 @@ version: "3.3"
 
 services:
   nginx-proxy:
-    image: jwilder/nginx-proxy:alpine
+    image: nginx:latest
     ports:
-      - "80:80"
+      - "40100:80"
       - "443:443"
     deploy:
       replicas: 2
+    depends_on:
+      - fireflyiii
     labels:
       - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=true"
     volumes:
@@ -16,6 +18,9 @@ services:
       - ./vhost:/etc/nginx/vhost.d
       - /var/run/docker.sock:/tmp/docker.sock:ro
       - ./pass:/etc/nginx/htpasswd:ro
+    configs:
+      - source: firefly3-nginx
+        target: /etc/nginx/conf.d/default.conf
 
   letsencrypt:
     image: jrcs/letsencrypt-nginx-proxy-companion
@@ -32,9 +37,7 @@ services:
     image: jc5x/firefly-iii:latest
     env_file: .env
     ports:
-      - "80"
-    deploy:
-      replicas: 4
+      - "40110:80"
     depends_on:
       - fireflyiiidb
       - fireflyiiidb_replica1
@@ -47,10 +50,72 @@ services:
       - redis_sentinel1
       - redis_sentinel2
       - redis_sentinel3
-      - nginx-proxy
     volumes:
       - firefly_iii_export:/var/www/firefly-iii/storage/export
       - firefly_iii_upload:/var/www/firefly-iii/storage/upload
+
+  fireflyiii2:
+    image: jc5x/firefly-iii:latest
+    env_file: .env
+    ports:
+      - "40111:80"
+    depends_on:
+      - fireflyiiidb
+      - fireflyiiidb_replica1
+      - fireflyiiidb_replica2
+      - fireflyiiidb_replica3
+      - fireflyiiidb_replica4
+      - redis_master
+      - redis_slave1
+      - redis_slave2
+      - redis_sentinel1
+      - redis_sentinel2
+      - redis_sentinel3
+    volumes:
+      - firefly_iii_export2:/var/www/firefly-iii/storage/export
+      - firefly_iii_upload2:/var/www/firefly-iii/storage/upload
+
+  fireflyiii3:
+    image: jc5x/firefly-iii:latest
+    env_file: .env
+    ports:
+      - "40112:80"
+    depends_on:
+      - fireflyiiidb
+      - fireflyiiidb_replica1
+      - fireflyiiidb_replica2
+      - fireflyiiidb_replica3
+      - fireflyiiidb_replica4
+      - redis_master
+      - redis_slave1
+      - redis_slave2
+      - redis_sentinel1
+      - redis_sentinel2
+      - redis_sentinel3
+    volumes:
+      - firefly_iii_export3:/var/www/firefly-iii/storage/export
+      - firefly_iii_upload3:/var/www/firefly-iii/storage/upload
+
+  fireflyiii4:
+    image: jc5x/firefly-iii:latest
+    env_file: .env
+    ports:
+      - "40113:80"
+    depends_on:
+      - fireflyiiidb
+      - fireflyiiidb_replica1
+      - fireflyiiidb_replica2
+      - fireflyiiidb_replica3
+      - fireflyiiidb_replica4
+      - redis_master
+      - redis_slave1
+      - redis_slave2
+      - redis_sentinel1
+      - redis_sentinel2
+      - redis_sentinel3
+    volumes:
+      - firefly_iii_export4:/var/www/firefly-iii/storage/export
+      - firefly_iii_upload4:/var/www/firefly-iii/storage/upload
   
   fireflyiiidb:
     image: postgres:10-alpine
@@ -62,9 +127,12 @@ services:
       - POSTGRES_DB_FILE=/run/secrets/firefly3-postgres-db
       - POSTGRES_USER_FILE=/run/secrets/firefly3-postgres-user
       - POSTGRES_PASSWORD_FILE=/run/secrets/firefly3-postgres-passwd
-      - POSTGRES_HOST_AUTH_METHOD="host all all 0.0.0.0/0 md5"
+      - PGDATA=firefly_iii_db
     volumes:
       - firefly_iii_db:/var/lib/postgresql/data
+    configs:
+      - firefly3-postgresql
+      - firefly3-pg_hba
     secrets:
       - firefly3-postgres-db
       - firefly3-postgres-user
@@ -80,11 +148,14 @@ services:
       - POSTGRES_DB_FILE=/run/secrets/firefly3-postgres-db
       - POSTGRES_USER_FILE=/run/secrets/firefly3-postgres-user
       - POSTGRES_PASSWORD_FILE=/run/secrets/firefly3-postgres-passwd
-      - POSTGRES_HOST_AUTH_METHOD="host all all 0.0.0.0/0 md5"
+      - PGDATA=firefly_iii_db_replica1
     depends_on:
       - fireflyiiidb
     volumes:
       - firefly_iii_db_replica1:/var/lib/postgresql/data
+    configs:
+      - firefly3-postgresql
+      - firefly3-pg_hba
     secrets:
       - firefly3-postgres-db
       - firefly3-postgres-user
@@ -100,11 +171,14 @@ services:
       - POSTGRES_DB_FILE=/run/secrets/firefly3-postgres-db
       - POSTGRES_USER_FILE=/run/secrets/firefly3-postgres-user
       - POSTGRES_PASSWORD_FILE=/run/secrets/firefly3-postgres-passwd
-      - POSTGRES_HOST_AUTH_METHOD="host all all 0.0.0.0/0 md5"
+      - PGDATA=firefly_iii_db_replica2
     depends_on:
       - fireflyiiidb
     volumes:
       - firefly_iii_db_replica2:/var/lib/postgresql/data
+    configs:
+      - firefly3-postgresql
+      - firefly3-pg_hba
     secrets:
       - firefly3-postgres-db
       - firefly3-postgres-user
@@ -120,11 +194,14 @@ services:
       - POSTGRES_DB_FILE=/run/secrets/firefly3-postgres-db
       - POSTGRES_USER_FILE=/run/secrets/firefly3-postgres-user
       - POSTGRES_PASSWORD_FILE=/run/secrets/firefly3-postgres-passwd
-      - POSTGRES_HOST_AUTH_METHOD="host all all 0.0.0.0/0 md5"
+      - PGDATA=firefly_iii_db_replica3
     depends_on:
       - fireflyiiidb
     volumes:
       - firefly_iii_db_replica3:/var/lib/postgresql/data
+    configs:
+      - firefly3-postgresql
+      - firefly3-pg_hba
     secrets:
       - firefly3-postgres-db
       - firefly3-postgres-user
@@ -140,11 +217,14 @@ services:
       - POSTGRES_DB_FILE=/run/secrets/firefly3-postgres-db
       - POSTGRES_USER_FILE=/run/secrets/firefly3-postgres-user
       - POSTGRES_PASSWORD_FILE=/run/secrets/firefly3-postgres-passwd
-      - POSTGRES_HOST_AUTH_METHOD="host all all 0.0.0.0/0 md5"
+      - PGDATA=firefly_iii_db_replica4
     depends_on:
       - fireflyiiidb
     volumes:
       - firefly_iii_db_replica4:/var/lib/postgresql/data
+    configs:
+      - firefly3-postgresql
+      - firefly3-pg_hba
     secrets:
       - firefly3-postgres-db
       - firefly3-postgres-user
@@ -224,6 +304,42 @@ volumes:
       type: "nfs"
       o: "addr=srv2-deti.ua.pt,rw"
       device: ":/mnt/nfs/firefly3/firefly_iii_upload"
+  firefly_iii_export2:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=srv2-deti.ua.pt,rw"
+      device: ":/mnt/nfs/firefly3/firefly_iii_export2"
+  firefly_iii_upload2:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=srv2-deti.ua.pt,rw"
+      device: ":/mnt/nfs/firefly3/firefly_iii_upload2"
+  firefly_iii_export3:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=srv2-deti.ua.pt,rw"
+      device: ":/mnt/nfs/firefly3/firefly_iii_export3"
+  firefly_iii_upload3:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=srv2-deti.ua.pt,rw"
+      device: ":/mnt/nfs/firefly3/firefly_iii_upload3"
+  firefly_iii_export4:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=srv2-deti.ua.pt,rw"
+      device: ":/mnt/nfs/firefly3/firefly_iii_export4"
+  firefly_iii_upload4:
+    driver: local
+    driver_opts:
+      type: "nfs"
+      o: "addr=srv2-deti.ua.pt,rw"
+      device: ":/mnt/nfs/firefly3/firefly_iii_upload4"
   firefly_iii_db:
     driver: local
     driver_opts:
@@ -257,6 +373,14 @@ volumes:
   redis_master_data:
   redis_slave_data1:
   redis_slave_data2:
+
+configs:
+  firefly3-postgresql:
+    external: true
+  firefly3-pg_hba:
+    external: true
+  firefly3-nginx:
+    external: true
 
 secrets:
   firefly3-postgres-db:
