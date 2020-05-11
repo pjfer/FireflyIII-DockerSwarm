@@ -17,6 +17,8 @@ def lifecycle(email, pw, base_url, redirect_uri, authorize_url, access_token_url
         cli = ApiClient(base_url, redirect_uri, authorize_url, access_token_url, email, pw)
         cli.load_dashboard_resources()  # Obtém os diferentes recursos presentes na dashboard (simular carga)
         print("Client created")
+        credentials = cli.get_api_credentias()
+        line = json.dumps({"email": email, "client_id": credentials[0], "client_secret": credentials[1]})
         file.write(line+"\n")
         time.sleep(randint(1, 5))
         cli.enter_assets()
@@ -41,9 +43,6 @@ def lifecycle(email, pw, base_url, redirect_uri, authorize_url, access_token_url
         cli.create_categories()
         print("Categories created")
         time.sleep(randint(1, 5))
-        credentials = cli.get_api_credentias()
-        line = json.dumps({"email": email, "client_id": credentials[0], "client_secret": credentials[1]})
-        
     else:
         cli = ApiClient(base_url, redirect_uri, authorize_url, access_token_url, email, pw,
                         client_id=client_id, client_secret=client_secret)
@@ -82,7 +81,7 @@ def lifecycle(email, pw, base_url, redirect_uri, authorize_url, access_token_url
 
 def main(email, pw):
 
-    if os.path.isfile("credentials/"+email.split("@")[0]+".json"):
+    if os.path.isfile("data/credentials/"+email.split("@")[0]+".json"):
         f = open("data/credentials/"+email.split("@")[0]+".json", "r")
         credentials = json.load(f)
         lifecycle(email, pw, BASE_URL, REDIRECT_URI, AUTHORIZE_URL, ACCESS_TOKEN_URL,
